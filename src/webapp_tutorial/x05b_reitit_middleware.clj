@@ -40,21 +40,25 @@
 
 (defn create-download-page [path]
   (html5
-    [:h1 "Here's a list of files"]
-    [:ul
-     [:p "../" [:a {:href "/api/ui?path=../"} "go up"]]
-     ;[:p "../" [:a {:href "/index.html?path=../"} "go up"]]
-
-     (for [^File file (.listFiles ^File (io/file path))
-           :let [filename (.getName file)
-                 file? (.isFile file)]]
-       [:li
-        (if file?
-          [:p
-           filename
-           [:a {:href (str "/api/show?filename=" filename)} " show"]
-           [:a {:href (str "/api/download?filename=" filename)} " download"]]
-          [:p filename [:a {:href (str "/index.html?path=" filename)} " navigate"]])])]))
+    [:head
+     [:link {:rel "stylesheet" :href "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" :integrity "sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" :crossorigin "anonymous"}]]
+    [:body
+     [:h1 "Here's a list of files"]
+     [:ul
+      [:li [:span "../" [:a {:href "/index.html?path=../"} "go up"]]]
+      (for [^File file (sort-by (comp cs/lower-case str) (.listFiles ^File (io/file path)))
+            :let [filename (.getName file)
+                  file? (.isFile file)]]
+        [:li
+         (if file?
+           [:span
+            filename
+            [:a {:href (str "/api/show?filename=" filename)} " show"]
+            [:a {:href (str "/api/download?filename=" filename)} " download"]]
+           [:span filename [:a {:href (str "/index.html?path=" filename)} " navigate"]])])]
+     [:script {:src "https://code.jquery.com/jquery-3.4.1.slim.min.js" :integrity "sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" :crossorigin "anonymous"}]
+     [:script {:src "https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" :integrity "sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" :crossorigin "anonymous"}]
+     [:script {:src "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" :integrity "sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" :crossorigin "anonymous"}]]))
 
 ;"Local" handlers
 (defn hello-handler [{:keys [params] :as request}]
@@ -65,13 +69,11 @@
   (ok (with-out-str (pp/pprint request))))
 
 (defn list-files-handler [{:keys [file-path] :as request}]
-  (-> (ok (local-files file-path))
+  (-> (cs/join "\n" (local-files file-path))
+      ok
       (content-type "text/plain")))
 
 (defn show-file-handler [{:keys [file-path params] :as request}]
-  (println ">>>")
-  (pp/pprint (select-keys request [:file-path :session]))
-  (println "<<<")
   (let [{:strs [filename]} params
         path (str file-path "/" filename)]
     (if path
@@ -79,7 +81,6 @@
       (bad-request "No filename specified."))))
 
 (defn download-file-handler [{:keys [file-path params] :as request}]
-  (pp/pprint (select-keys request [:file-path :session]))
   (let [{:strs [filename]} params
         path (str file-path "/" filename)]
     (if path
@@ -88,7 +89,6 @@
       (bad-request "No filename specified."))))
 
 (defn download-page-handler [{:keys [file-path session] :as request}]
-  (pp/pprint (select-keys request [:file-path :session]))
   (ok (create-download-page file-path)))
 
 ;Our new middleware that injects our path into the request. Note that it is conventional
@@ -108,15 +108,6 @@
                          (assoc-in [:session :path] path)))]
       (assoc-in response [:session :path] path))))
 
-(defn wrap-order [handler i]
-  (fn [request]
-    (println (format "pre-handler[%s]\trequest=%s" i request))
-    (let [response (-> (handler (update request :pre (comp vec conj) i))
-                       (update :pst (comp vec conj) i)
-                       (assoc :pre (request :pre)))]
-      (println (format "pst-handler[%s]\trespose=%s" i response))
-      response)))
-
 ;I've added the middleware here
 (def router
   (ring/router
@@ -129,19 +120,19 @@
                      :middleware [wrap-nav-session]}]
      ;And add new middleware to these endpoints
      ["/api" {:middleware [wrap-nav-session]}
-      ["/ui" {:get download-page-handler}]
       ["/list" {:get list-files-handler}]
       ["/show" {:get show-file-handler}]
       ["/download" {:get download-file-handler}]]]
     ;Global middleware
-    {:data {:middleware [wrap-session
-                         wrap-params]}}))
+    {:data {:middleware [wrap-params]}}
+    ))
 
 ;I've removed the "thread first" middleware wrapping here.
 (def handler
   (ring/ring-handler
     router
-    (constantly (not-found "Sorry, I don't understand that path."))))
+    (constantly (not-found "Sorry, I don't understand that path."))
+    {:middleware [wrap-session]}))
 
 (defonce server (jetty/run-jetty #'handler {:host  "0.0.0.0"
                                             :port  3000

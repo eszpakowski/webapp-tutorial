@@ -98,7 +98,7 @@
       ["/show" {:get show-file-handler}]
       ["/download" {:get download-file-handler}]]]))
 
-;I've added the wrap-params middleware. The eaisest way to add the ring middlewares
+;I've added the wrap-params middleware. The easiest way to add the ring middlewares
 ;is just to include the ring project in your dependencies ([ring "1.8.0"]).
 
 ;If you now navigate to http://localhost:3000/debug/dump?name=Mark you can inspect the
