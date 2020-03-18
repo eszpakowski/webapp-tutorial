@@ -8,9 +8,10 @@
   (:import (java.io File)))
 
 ;Our next logical stage in this tutorial series is routing using a routing library,
-;but the ugliness of the hand-crafted HTML compels me to introduce hiccup instead.
-;Hiccup is a wonderful library (add [hiccup "1.0.5"] to your dependencies) that converts Clojure data strucutures to
-;HTML. This makes it trivial to programmatically generate HTML on the server.
+; but the ugliness of the hand-crafted HTML compels me to introduce hiccup instead.
+; Hiccup is a wonderful library (add [hiccup "1.0.5"] to your dependencies) that
+; converts Clojure data strucutures to HTML. This makes it trivial to
+; programmatically generate HTML on the server.
 
 ;Our API containing our business logic
 (defn greet [greetee]

@@ -64,7 +64,8 @@
   (let [[_ filename] (some->> query-string (re-matches #"filename=(.+)"))]
     (if filename
       (-> (file-response filename)
-          (header "Content-Disposition" (format "attachment; filename=\"%s\"" filename)))
+          (header "Content-Disposition"
+                  (format "attachment; filename=\"%s\"" filename)))
       (bad-request "No filename specified."))))
 
 (defn download-page-handler [request]

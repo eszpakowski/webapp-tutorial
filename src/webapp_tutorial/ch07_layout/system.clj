@@ -1,17 +1,18 @@
 (ns webapp-tutorial.ch07-layout.system
   "A ns containing system configuration. It should primarily consist of:
-   * integrant multimethods for components - Note that it is also a good idea to build up
-     a set of common multimethods in a different package or project for reuse
+   * integrant multimethods for components - Note that it is also a good idea to
+   build up a set of common multimethods in a different package or project for
+   reuse
    * The configuration map.
    * The system boilerplate to start, stop, restart, etc.
-   Note that you don't have to use a dynamic var for your system. An atom is also fine, but
-     using a dynamic var works pretty well.
+   Note that you don't have to use a dynamic var for your system. An atom is
+   also fine, but using a dynamic var works pretty well.
 
-   One thing that I'll discuss later is that it is critical that the web and api nses
-   NEVER know about this ns. It is a sign of complex architecture and you will almost
-   certainly have circular references in your project. I will discuss how to inject the
-   needed data into your application such that the transport layers (e.g. web) and api
-   layers need never know about the system."
+   One thing that I'll discuss later is that it is critical that the web and api
+   nses NEVER know about this ns. It is a sign of complex architecture and you
+   will almost certainly have circular references in your project. I will
+   discuss how to inject the needed data into your application such that the
+   transport layers (e.g. web) and api layers need never know about the system."
   (:require [integrant.core :as ig]
             [webapp-tutorial.ch07-layout.web :as web]
             [ring.adapter.jetty :as jetty]))

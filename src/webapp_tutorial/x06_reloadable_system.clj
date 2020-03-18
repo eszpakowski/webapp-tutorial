@@ -14,15 +14,18 @@
 ;Until now, every system has been launched via a defonced jetty server.
 ;This has a few challenges:
 ; * It can be a bit kludgy to stop, start, or restart the server
-; * Whenever a ns is loaded, a server is launched due to the global nature of the var
+; * Whenever a ns is loaded, a server is launched due to the global nature of
+;   the var
 ;
-;In the ns I'll introduce integrant (https://github.com/weavejester/integrant), a microframework
-;for data-driven architecture. This particular implementation won't do anything super exciting,
-;but it lays the groundwork for future applications.
+;In the ns I'll introduce integrant (https://github.com/weavejester/integrant),
+; a microframework for data-driven architecture. This particular implementation
+; won't do anything super exciting, but it lays the groundwork for future
+; applications.
 ;
 ;To use integrant, add [integrant "0.8.0"] to you dependencies vector.
 ;
-;Once you've done that, jump down to where we launch our server to see what's changed.
+;Once you've done that, jump down to where we launch our server to see what's
+; changed.
 
 ;Our API containing our business logic
 (defn greet [greetee]
@@ -39,7 +42,10 @@
 (defn create-download-page [path]
   (html5
     [:head
-     [:link {:rel "stylesheet" :href "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" :integrity "sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" :crossorigin "anonymous"}]]
+     [:link {:rel "stylesheet"
+             :href "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+             :integrity "sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+             :crossorigin "anonymous"}]]
     [:body
      [:h1 "Here's a list of files"]
      [:ul
@@ -54,9 +60,15 @@
             [:a {:href (str "/api/show?filename=" filename)} " show"]
             [:a {:href (str "/api/download?filename=" filename)} " download"]]
            [:span filename [:a {:href (str "/index.html?path=" filename)} " navigate"]])])]
-     [:script {:src "https://code.jquery.com/jquery-3.4.1.slim.min.js" :integrity "sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" :crossorigin "anonymous"}]
-     [:script {:src "https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" :integrity "sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" :crossorigin "anonymous"}]
-     [:script {:src "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" :integrity "sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" :crossorigin "anonymous"}]]))
+     [:script {:src "https://code.jquery.com/jquery-3.4.1.slim.min.js"
+               :integrity "sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+               :crossorigin "anonymous"}]
+     [:script {:src "https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+               :integrity "sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+               :crossorigin "anonymous"}]
+     [:script {:src "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+               :integrity "sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+               :crossorigin "anonymous"}]]))
 
 ;"Local" handlers
 (defn hello-handler [{:keys [params] :as request}]
@@ -83,7 +95,8 @@
         path (str file-path "/" filename)]
     (if path
       (-> (file-response path)
-          (header "Content-Disposition" (format "attachment; filename=\"%s\"" filename)))
+          (header "Content-Disposition"
+                  (format "attachment; filename=\"%s\"" filename)))
       (bad-request "No filename specified."))))
 
 (defn download-page-handler [{:keys [file-path session] :as request}]
@@ -129,16 +142,17 @@
     {:middleware [wrap-session]}))
 
 ;Here's the new stuff related to integrant.
-; Integrant has several functions in the library, but the most important ones are these:
-; * init-key: A multimethod that keys off of a configuration key to know how to turn
-;   configuration data into an initialized component
+; Integrant has several functions in the library, but the most important ones
+; are these:
+; * init-key: A multimethod that keys off of a configuration key to know how to
+; turn configuration data into an initialized component
 ; * halt-key!: A multimethod that takes an initialized component and shuts it down
 ; * init: Takes a configuration map, initializes all keys, and returns the new map
 ;    with all keys initialized
 ; * halt!: Shuts down all initialized parts of a system
 
-;Here is a very basic implementation of how to initialize a web server. The config
-;contains all needed data to launch the server.
+;Here is a very basic implementation of how to initialize a web server.
+; The config contains all needed data to launch the server.
 (defmethod ig/init-key :server [_ {:keys [handler] :as config}]
   (jetty/run-jetty handler config))
 
@@ -147,10 +161,10 @@
   (.stop server))
 
 ;This configuration map now has all the data needed to convert the :server key
-; into a running server. At this point, we are only launching a single component in
-; our system - the server. However, in future tutorials I'll show how to use this
-; config map to add other stateful elements to the system such as database connections
-; or even other servers.
+; into a running server. At this point, we are only launching a single component
+; in our system - the server. However, in future tutorials I'll show how to use
+; this config map to add other stateful elements to the system such as database
+; connections or even other servers.
 (def config
   {:server {:host  "0.0.0.0"
             :port  3000

@@ -1,6 +1,7 @@
 (ns webapp-tutorial.ch07-layout.core
   "A ns containing a main method for launching your system. This is the only ns
-  that should be aware of your system since it will be launching it as its primary role."
+  that should be aware of your system since it will be launching it as its
+   primary role."
   (:gen-class)
   (:require [webapp-tutorial.ch07-layout.system :as sys]))
 

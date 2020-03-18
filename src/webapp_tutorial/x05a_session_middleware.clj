@@ -10,10 +10,10 @@
             [ring.middleware.params :refer [wrap-params]])
   (:import (java.io File)))
 
-;In the last session I introduced the concept of middleware. To further illustrate
-;how middlewares can ve used to extend our app I will introduce the wrap-session
-;middleware. This will create a stateful web session that we can use to add browsing
-; to our file server api.
+;In the last session I introduced the concept of middleware. To further
+; illustrate how middlewares can ve used to extend our app I will introduce the
+; wrap-session middleware. This will create a stateful web session that we can
+; use to add browsing to our file server api.
 
 ;Our API containing our business logic
 (defn greet [greetee]
@@ -67,7 +67,8 @@
         path (cs/join "/" (-> session :path (conj filename)))]
     (if path
       (-> (file-response path)
-          (header "Content-Disposition" (format "attachment; filename=\"%s\"" filename)))
+          (header "Content-Disposition"
+                  (format "attachment; filename=\"%s\"" filename)))
       (bad-request "No filename specified."))))
 
 (defn download-page-handler [{:keys [session params] :as request}]

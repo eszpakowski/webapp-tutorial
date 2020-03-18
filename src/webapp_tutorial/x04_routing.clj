@@ -8,11 +8,12 @@
             [reitit.ring :as ring])
   (:import (java.io File)))
 
-;The next stage of our app is to introduce a routing library. Up until now, we've done
-;routing with a simple case statement. This is ok for very simple applications, but even then
-;you really should use a routing library. Two popular libraries are Compojure and Reitit.
-;Reitit is a newer and more data-driven API that I'll be using here. Add the dependency to
-;your project as [metosin/reitit "0.4.2"].
+;The next stage of our app is to introduce a routing library. Up until now,
+; we've done routing with a simple case statement. This is ok for very simple
+; applications, but even then you really should use a routing library. Two
+; popular routing libraries are Compojure and Reitit. Reitit is a newer and more
+; data-driven API that I'll be using here. Add the dependency to your project as
+; [metosin/reitit "0.4.2"].
 
 ;Our API containing our business logic
 (defn greet [greetee]
@@ -64,18 +65,22 @@
 (defn download-page-handler [request]
   (ok (create-download-page)))
 
-;Notice that we've now separated our global handler into router, which is just a vector of routes and maps describing
-;the endpoints associated with each route, and a handler, which is created by passing the router to the ring-handler
-; function. For now, we're just mapping the desired HTTP method to the individual web handlers. We'll add more
-; information to the router data later.
+;Notice that we've now separated our global handler into router, which is just a
+; vector of routes and maps describing the endpoints associated with each route,
+; and a handler, which is created by passing the router to the ring-handler
+; function. For now, we're just mapping the desired HTTP method to the
+; individual web handlers. We'll add more information to the router data later.
 
-;This design provides a very clean architectural separation between the server, the router, the global handler, the
-;individual handler, and the business logic layer. Starting from the top, any of these items can be tested, debugged,
-;and developed in isolation. It is trivial to change one of these components independent of the rest.
+;This design provides a very clean architectural separation between the server,
+; the router, the global handler, the individual handler, and the business logic
+; layer. Starting from the top, any of these items can be tested, debugged, and
+; developed in isolation. It is trivial to change one of these components
+; independent of the rest.
 
-;Notice also that I've nested the hello and debug endpoints into a debug path and the list, show, and download endpoints
-;into an api path. This is one nice thing about using a routing library. You set up the routes and let the library deal
-;with the matching.
+;Notice also that I've nested the hello and debug endpoints into a debug path
+; and the list, show, and download endpoints into an api path. This is one nice
+; thing about using a routing library. You set up the routes and let the library
+; deal with the matching.
 (def router
   (ring/router
     [["/debug"

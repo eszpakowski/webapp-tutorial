@@ -9,12 +9,13 @@
             [ring.middleware.params :refer [wrap-params]])
   (:import (java.io File)))
 
-;I'll now introduce one of the most powerful concepts of building webapps in Clojure:
+;I'll now introduce one of the most powerful concepts of building webapps in
+; Clojure:
 ; Middleware.
 ; A middleware is a function that takes your original handler and returns a new
 ; handler. In this way, you can modify or extend your handler with all kinds of
-; useful behaviors. For example, here is a middleware that adds timing information
-; to your response:
+; useful behaviors. For example, here is a middleware that adds timing
+; information to your response:
 
 (defn wrap-add-timing [handler]
   (fn [request]
@@ -31,9 +32,10 @@
       ;and so on
       )
   )
-;To this point we have used no middlewares. You don't generally write much middleware
-;yourself because there exists a lot of standard middlewares out there, especially in
-;the ring ecosystem, a set of Clojure libraries developed by James Reeves (weavejester).
+;To this point we have used no middlewares. You don't generally write much
+; middleware yourself because there exists a lot of standard middlewares out
+; there, especially in the ring ecosystem, a set of Clojure libraries developed
+; by James Reeves (weavejester).
 
 ;If you jump down to our handler I'll introduce some common middlewares.
 
@@ -81,7 +83,8 @@
   (let [{:strs [filename]} params]
     (if filename
       (-> (file-response filename)
-          (header "Content-Disposition" (format "attachment; filename=\"%s\"" filename)))
+          (header "Content-Disposition"
+                  (format "attachment; filename=\"%s\"" filename)))
       (bad-request "No filename specified."))))
 
 (defn download-page-handler [request]
@@ -98,20 +101,23 @@
       ["/show" {:get show-file-handler}]
       ["/download" {:get download-file-handler}]]]))
 
-;I've added the wrap-params middleware. The easiest way to add the ring middlewares
-;is just to include the ring project in your dependencies ([ring "1.8.0"]).
+;I've added the wrap-params middleware. The easiest way to add the ring
+; middlewares is just to include the ring project in your dependencies
+; ([ring "1.8.0"]).
 
-;If you now navigate to http://localhost:3000/debug/dump?name=Mark you can inspect the
-;result and see that the request has been enhanced with both a :params and a
-; :query-params key. I now no longer need to regular expression matching on my
-; :query-string. I've updated the handlers above to reflect these new keys.
-; Also, be aware that the params are string keys, so I am destructuring them with :strs
-; vs. :keys. You could write a middleware to keywordize params if you wanted.
+;If you now navigate to http://localhost:3000/debug/dump?name=Mark you can
+; inspect the result and see that the request has been enhanced with both a
+; :params and a :query-params key. I now no longer need to regular expression
+; matching on my :query-string. I've updated the handlers above to reflect these
+; new keys. Also, be aware that the params are string keys, so I am
+; destructuring them with :strs vs. :keys. You could write a middleware to
+; keywordize params if you wanted.
 
-;The are a huge number of middlewares available and many people just import and use the
-; wrap defaults (https://github.com/ring-clojure/ring-defaults) middlewares as sane
-; defaults for their web applications. You just wrap your basic handler with one of
-; the four default sets of middleware described here https://github.com/ring-clojure/ring-defaults#basic-usage.
+;The are a huge number of middlewares available and many people just import and
+; use the wrap defaults (https://github.com/ring-clojure/ring-defaults)
+; middlewares as sane defaults for their web applications. You just wrap your
+; basic handler with one of the four default sets of middleware described here
+; https://github.com/ring-clojure/ring-defaults#basic-usage.
 (def handler
   (-> (ring/ring-handler
         router

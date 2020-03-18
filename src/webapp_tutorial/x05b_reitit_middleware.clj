@@ -10,22 +10,25 @@
             [ring.middleware.params :refer [wrap-params]])
   (:import (java.io File)))
 
-;In the last session we introduced the wrap-session middleware. This gave us a pretty cool web-based
-;file system navigator for our application, but it had a few issues:
-; 1. You have logic in several locations to compute the current path:
+;In the last session we introduced the wrap-session middleware. This gave us a
+; pretty cool web-based file system navigator for our application, but it had a
+; few issues:
+; 1. You have session logic in several locations to compute the current path:
 ;    * list-files-handler
 ;    * show-files-handler
 ;    * download-file-handler
 ;    * download-page-handler
 ;   This logic has to be maintained across all the handlers
-; 2. There is an obvious bug in which you can try to navigate above the root of the starting
-;    file folder and this causes you to pop and empty stack and an error occurs.
+; 2. There is an obvious bug in which you can try to navigate above the root of
+;    the starting file folder and this causes you to pop and empty stack and an
+;    error occurs.
 ;
-;This tutorial is going to resolve this issue with a new middleware that injects consistent session
-; path logic into our endpoints. However, we don't want this logic in every endpoint (we don't want it
-; in our debug endpoints, for example). To fix this, I'll also introduce a new concept - putting the
-; middleware into the router definition. This is a much cleaner way to inject your middlewares and
-; makes the code easier to understand, as well.
+;This tutorial is going to resolve this issue with a new middleware that injects
+; consistent session path logic into our endpoints. However, we don't want this
+; logic in every endpoint (we don't want it in our debug endpoints, for example).
+; To fix this, I'll also introduce a new concept - putting the middleware into
+; the router definition. This is a much cleaner way to inject your middlewares
+; and makes the code easier to understand, as well.
 
 ;Our API containing our business logic
 (defn greet [greetee]
@@ -42,7 +45,10 @@
 (defn create-download-page [path]
   (html5
     [:head
-     [:link {:rel "stylesheet" :href "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" :integrity "sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" :crossorigin "anonymous"}]]
+     [:link {:rel "stylesheet"
+             :href "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+             :integrity "sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+             :crossorigin "anonymous"}]]
     [:body
      [:h1 "Here's a list of files"]
      [:ul
@@ -57,9 +63,15 @@
             [:a {:href (str "/api/show?filename=" filename)} " show"]
             [:a {:href (str "/api/download?filename=" filename)} " download"]]
            [:span filename [:a {:href (str "/index.html?path=" filename)} " navigate"]])])]
-     [:script {:src "https://code.jquery.com/jquery-3.4.1.slim.min.js" :integrity "sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" :crossorigin "anonymous"}]
-     [:script {:src "https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" :integrity "sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" :crossorigin "anonymous"}]
-     [:script {:src "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" :integrity "sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" :crossorigin "anonymous"}]]))
+     [:script {:src "https://code.jquery.com/jquery-3.4.1.slim.min.js"
+               :integrity "sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+               :crossorigin "anonymous"}]
+     [:script {:src "https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+               :integrity "sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+               :crossorigin "anonymous"}]
+     [:script {:src "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+               :integrity "sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+               :crossorigin "anonymous"}]]))
 
 ;"Local" handlers
 (defn hello-handler [{:keys [params] :as request}]
@@ -86,14 +98,15 @@
         path (str file-path "/" filename)]
     (if path
       (-> (file-response path)
-          (header "Content-Disposition" (format "attachment; filename=\"%s\"" filename)))
+          (header "Content-Disposition"
+                  (format "attachment; filename=\"%s\"" filename)))
       (bad-request "No filename specified."))))
 
-(defn download-page-handler [{:keys [file-path session] :as request}]
+(defn download-page-handler [{:keys [file-path] :as request}]
   (ok (create-download-page file-path)))
 
-;Our new middleware that injects our path into the request. Note that it is conventional
-; to name your middleware wrap-x.
+;Our new middleware that injects our path into the request. Note that it is
+; conventional to name your middleware wrap-x.
 
 (defn wrap-nav-session [handler]
   (fn [{{[root nxt :as path] :path} :session :keys [params] :as request}]
@@ -133,6 +146,7 @@
   (ring/ring-handler
     router
     (constantly (not-found "Sorry, I don't understand that path."))
+    ;Global middleware
     {:middleware [wrap-session]}))
 
 (defonce server (jetty/run-jetty #'handler {:host  "0.0.0.0"

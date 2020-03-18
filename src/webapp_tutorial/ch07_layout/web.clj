@@ -1,10 +1,11 @@
 (ns webapp-tutorial.ch07-layout.web
-  "A ns containing web endpoints and routing data for the app. The primary output of the
-  web ns should be the handler function. If the ns grows too large it may be a good idea
-  to create a web package with the handler in a core or handler ns and other nses for
-  different web apis. It is sometimes appropriate to put all middlewares in a middleware ns.
-  This ns or package should concern itself only with handling requests, routing, invoking
-  business logic, and returning a response. Never put business logic in the web ns/package."
+  "A ns containing web endpoints and routing data for the app. The primary
+  output of the web ns should be the handler function. If the ns grows too large
+  it may be a good idea to create a web package with the handler in a core or
+  handler ns and other nses for different web apis. It is sometimes appropriate
+  to put all middlewares in a middleware ns. This ns or package should concern
+  itself only with handling requests, routing, invoking business logic, and
+  returning a response. Never put business logic in the web ns/package."
   (:require [clojure.pprint :as pp]
             [clojure.string :as cs]
             [reitit.ring :as ring]
@@ -37,7 +38,8 @@
         path (str file-path "/" filename)]
     (if path
       (-> (file-response path)
-          (header "Content-Disposition" (format "attachment; filename=\"%s\"" filename)))
+          (header "Content-Disposition"
+                  (format "attachment; filename=\"%s\"" filename)))
       (bad-request "No filename specified."))))
 
 (defn download-page-handler [{:keys [file-path session] :as request}]

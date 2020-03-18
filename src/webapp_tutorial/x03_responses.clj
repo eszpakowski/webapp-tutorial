@@ -35,6 +35,7 @@
   ;Basic responses
   (ok "All I do is modify maps.")
   (not-found "You did't find me.")
+
   ;Use a threading macro with a basic response + response modifiers
   (-> (ok "Watch this")
       (content-type "text/plain")
