@@ -1,14 +1,23 @@
 # webapp-tutorial
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure project meant to show, step-by-step, how to build web applications in Clojure.
 
-## Usage
+Topics include:
 
-FIXME
+ * Basic parts of a Clojure web app
+ * Basic routing
+ * Building responses
+ * Routing
+ * Middleware
+ * Managing session state
+
+## Ideas
+
+Project name: Swiss Army Knife of Clojure Web or something...
 
 ## License
 
-Copyright © 2020 FIXME
+Copyright © 2020 Mark Bastian
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at

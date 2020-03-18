@@ -8,5 +8,8 @@
                  [metosin/ring-http-response "0.9.1"]
                  [hiccup "1.0.5"]
                  [metosin/reitit "0.4.2"]
-                 [ring "1.8.0"]]
+                 [ring "1.8.0"]
+                 [integrant "0.8.0"]]
+
+  :main webapp-tutorial.ch07-layout.core
   )

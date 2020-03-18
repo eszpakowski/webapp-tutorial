@@ -1,4 +1,4 @@
-(ns webapp-tutorial.x05b-reitit-middleware
+(ns webapp-tutorial.x06-reloadable-system
   (:require [ring.adapter.jetty :as jetty]
             [ring.util.http-response :refer [ok content-type not-found file-response header bad-request]]
             [hiccup.page :refer [html5]]
@@ -7,25 +7,22 @@
             [clojure.string :as cs]
             [reitit.ring :as ring]
             [ring.middleware.session :refer [wrap-session]]
-            [ring.middleware.params :refer [wrap-params]])
+            [ring.middleware.params :refer [wrap-params]]
+            [integrant.core :as ig])
   (:import (java.io File)))
 
-;In the last session we introduced the wrap-session middleware. This gave us a pretty cool web-based
-;file system navigator for our application, but it had a few issues:
-; 1. You have logic in several locations to compute the current path:
-;    * list-files-handler
-;    * show-files-handler
-;    * download-file-handler
-;    * download-page-handler
-;   This logic has to be maintained across all the handlers
-; 2. There is an obvious bug in which you can try to navigate above the root of the starting
-;    file folder and this causes you to pop and empty stack and an error occurs.
+;Until now, every system has been launched via a defonced jetty server.
+;This has a few challenges:
+; * It can be a bit kludgy to stop, start, or restart the server
+; * Whenever a ns is loaded, a server is launched due to the global nature of the var
 ;
-;This tutorial is going to resolve this issue with a new middleware that injects consistent session
-; path logic into our endpoints. However, we don't want this logic in every endpoint (we don't want it
-; in our debug endpoints, for example). To fix this, I'll also introduce a new concept - putting the
-; middleware into the router definition. This is a much cleaner way to inject your middlewares and
-; makes the code easier to understand, as well.
+;In the ns I'll introduce integrant (https://github.com/weavejester/integrant), a microframework
+;for data-driven architecture. This particular implementation won't do anything super exciting,
+;but it lays the groundwork for future applications.
+;
+;To use integrant, add [integrant "0.8.0"] to you dependencies vector.
+;
+;Once you've done that, jump down to where we launch our server to see what's changed.
 
 ;Our API containing our business logic
 (defn greet [greetee]
@@ -92,9 +89,6 @@
 (defn download-page-handler [{:keys [file-path session] :as request}]
   (ok (create-download-page file-path)))
 
-;Our new middleware that injects our path into the request. Note that it is conventional
-; to name your middleware wrap-x.
-
 (defn wrap-nav-session [handler]
   (fn [{{[root nxt :as path] :path} :session :keys [params] :as request}]
     (let [new-path-element (params "path")
@@ -128,20 +122,65 @@
     {:data {:middleware [wrap-params]}}
     ))
 
-;I've removed the "thread first" middleware wrapping here.
 (def handler
   (ring/ring-handler
     router
     (constantly (not-found "Sorry, I don't understand that path."))
     {:middleware [wrap-session]}))
 
-(defonce server (jetty/run-jetty #'handler {:host  "0.0.0.0"
-                                            :port  3000
-                                            :join? false}))
+;Here's the new stuff related to integrant.
+; Integrant has several functions in the library, but the most important ones are these:
+; * init-key: A multimethod that keys off of a configuration key to know how to turn
+;   configuration data into an initialized component
+; * halt-key!: A multimethod that takes an initialized component and shuts it down
+; * init: Takes a configuration map, initializes all keys, and returns the new map
+;    with all keys initialized
+; * halt!: Shuts down all initialized parts of a system
 
-(comment
-  (require '[clojure.java.browse :refer [browse-url]])
-  (browse-url "http://localhost:3000/index.html")
+;Here is a very basic implementation of how to initialize a web server. The config
+;contains all needed data to launch the server.
+(defmethod ig/init-key :server [_ {:keys [handler] :as config}]
+  (jetty/run-jetty handler config))
+
+;This shuts the server down
+(defmethod ig/halt-key! :server [_ server]
   (.stop server))
 
+;This configuration map now has all the data needed to convert the :server key
+; into a running server. At this point, we are only launching a single component in
+; our system - the server. However, in future tutorials I'll show how to use this
+; config map to add other stateful elements to the system such as database connections
+; or even other servers.
+(def config
+  {:server {:host  "0.0.0.0"
+            :port  3000
+            :join? false
+            :handler #'handler}})
+
+;Try this out to see how to launch and stop a server
+(comment
+  (def s (ig/init config))
+  (ig/halt! s)
+  )
+
+;Finally, here's some boilerplate that can be used to create a singleton system.
+
+;The system is referenced by this dynamic var. Note that it isn't initialized so
+;it's safe to load the ns without launching the system. You'll launch the system
+;via a REPL or a main method (covered in a later lesson).
+(defonce ^:dynamic *system* nil)
+
+(defn system [] *system*)
+
+(defn start
+  ([system] (alter-var-root system (fn [s] (if-not s (ig/init config) s))))
+  ([] (start #'*system*)))
+
+(defn stop
+  ([s] (alter-var-root s (fn [s] (when s (do (ig/halt! s) nil)))))
+  ([] (stop #'*system*)))
+
+(defn restart
+  ([s] (do (stop s) (start s)))
+  ([] (restart #'*system*)))
 
